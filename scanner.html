@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner</title>
+
+https://unpkg.com/@zxing/browser@0.1.4</script>
+
+<style>
+body {
+  font-family: Arial;
+  display: flex;
+  justify-content: center;
+  background: #eee;
+  margin: 0;
+}
+.container {
+  margin-top: 30px;
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+video {
+  width: 100%;
+  background: black;
+  border-radius: 8px;
+}
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #0066ff;
+  color: white;
+  border-radius: 8px;
+  border: none;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+  <h2>Scan Barcode</h2>
+
+  <video id="video" playsinline></video>
+
+  <p>Hasil: <span id="result">(belum ada)</span></p>
+
+  <button onclick="sendBack()">Kirim ke Power Apps</button>
+</div>
+
+<script>
+const resultElem = document.getElementById("result");
+const videoElem = document.getElementById("video");
+const reader = new ZXingBrowser.BrowserMultiFormatReader();
+
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(async () => {
+    const devices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+    if (!devices.length) {
+        resultElem.innerText = "Kamera tidak ditemukan";
+        return;
+    }
+
+    const backCam = devices.find(d => d.label.toLowerCase().includes("back"))
+                    || devices[0];
+
+    reader.decodeFromVideoDevice(backCam.deviceId, 'video', (res) => {
+        if (res) resultElem.innerText = res.text;
+    });
+
+})
+.catch(() => {
+    resultElem.innerText = "Izin kamera ditolak atau tidak tersedia";
+});
+
+function sendBack() {
+  const value = resultElem.innerText;
+  if (value === "(belum ada)") {
+      alert("Belum ada barcode");
+      return;
+  }
+
+  const url = "https://apps.powerapps.com/play/APPIDMAS"
+              + "?barcode=" + encodeURIComponent(value);
+
+  window.location.href = url;
+}
+</script>
+
+</body>
+</html>

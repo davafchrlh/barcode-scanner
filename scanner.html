@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mobile Barcode Scanner</title>
+
+<!-->
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  background: #f0f0f0;
+}
+
+.container {
+  margin-top: 20px;
+  width: 90%;
+  max-width: 500px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+video {
+  width: 100%;
+  border-radius: 8px;
+  background: black;
+}
+
+button: none;
+  border-radius: 8px;
+  font-size: 16px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+  <h2>Scan Barcode</h2>
+
+  <video id="video" playsinline></video>
+
+  <p><b>Hasil:</b> <span id="output">(belum ada)</span></p>
+
+  <button onclick="sendBack()">Kirim ke Power Apps</button>
+</div>
+
+<script>
+  const outputElem = document.getElementById("output");
+  const videoElem = document.getElementById("video");
+  const reader = new ZXingBrowser.BrowserMultiFormatReader();
+
+  // Request camera first
+  navigator.mediaDevices.getUserMedia({ video: true })
+  .then(async () => {
+      const devices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+
+      if (!devices || devices.length === 0) {
+         outputElem.innerText = "Tidak ada kamera ditemukan";
+         return;
+      }
+
+      const backCam = devices.find(d => d.label.toLowerCase().includes("back")) || devices[0];
+
+      reader.decodeFromVideoDevice(backCam.deviceId, 'video', (result, err) => {
+        if (result) outputElem.innerText = result.text;
+      });
+  })
+  .catch(() => {
+      outputElem.innerText = "Akses kamera ditolak";
+  });
+
+  function sendBack() {
+     const code = outputElem.innerText;
+     if (code === "(belum ada)") {
+        alert("Belum ada barcode");
+        return;
+     }
+
+     const powerAppsURL = "https://apps.powerapps.com/play/APPIDMAS?barcode=" + encodeURIComponent(code);
+     window.location.href = powerAppsURL;
+  }
+</script>
+
+</body>
+</html>
